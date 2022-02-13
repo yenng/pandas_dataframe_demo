@@ -42,7 +42,7 @@ asks_m_list = []
 t0 = time()
 count = 0
 
-fieldnames = ["count", "bids_m", "asks_m", "bids_vol_diff", "asks_vol_diff"]
+fieldnames = ["count", "bids_m", "asks_m", "rate_of_change", "bids_vol_diff", "asks_vol_diff"]
 
 with open('data.csv', 'w') as csv_file:
     csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -108,8 +108,9 @@ while True:
                         "count": count-200,
                         "bids_m": bids_m,
                         "asks_m": asks_m,
-                        "bids_vol_diff": x_diff["volBids"],
-                        "asks_vol_diff": x_diff["volAsks"]
+                        "rate_of_change": rate_of_change,
+                        "bids_vol_diff": x_diff["volBids"].values.tolist(),
+                        "asks_vol_diff": x_diff["volAsks"].values.tolist()
                     }
 
                     csv_writer.writerow(info)
