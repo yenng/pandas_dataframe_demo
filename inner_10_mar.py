@@ -31,25 +31,16 @@ def knudsen(L):
 
     return kn
 
-
-def plot_graph(data0, data1):
-    """ Function to plot 2 graph."""
-
-    # Plot the first graph for bids.
-    plt.subplot(2,1,1)
-    plt.plot(data0)
-    plt.title("Bids mean free path.")
-
-    # Plot the second graph for asks.
-    plt.subplot(2,1,2)
-    plt.plot(data1)
-    plt.title("Asks mean free path.")
-
-    # Update the graph when new value add in.
-    plt.pause(0.00001)
-
+def moving_average(data_in, ma=100):
+    data = data_in[-ma:]
+    if len(data) < 100:
+        return 0
+    else:
+        return np.mean(data)
+    
 if __name__ == "__main__":
-    fieldnames = ["count", "bids_m", "asks_m"]
+    fieldnames = ["count", "bids_m", "asks_m", "bids_ma", "asks_ma",
+                  "rate_of_change", "bids_vol_diff", "asks_vol_diff"]
 
     # Write header row.
     with open('data.csv', 'w') as csv_file:
@@ -86,8 +77,6 @@ if __name__ == "__main__":
 
         count = 0
 
-        f1 = open('output1.txt', 'w')
-
         def onTickerUpdate(ticker):
             """ Main event handler function when a ticker update."""
                    
@@ -105,7 +94,6 @@ if __name__ == "__main__":
 
                 global t0
                 global t1
-                global f1
 
                 # Final result.
                 global bids_m_list
@@ -151,11 +139,11 @@ if __name__ == "__main__":
                         # Get the time taken and rate of change.
                         t1 = time.time()
                         try:
-                            rate = price_diff/(t1-t0) # unit is usd/s
+                            rate_of_change = price_diff/(t1-t0) # unit is usd/s
                         except ZeroDivisionError:
-                            rate = 100000
+                            rate_of_change = 100000
 
-                        rate_list.append(rate)
+                        rate_list.append(rate_of_change)
 
                         t0 = t1
 
@@ -167,14 +155,19 @@ if __name__ == "__main__":
                             asks_m = meanFreePath(rate_list, asks_sum)
 
                             # Append the result to a list.
-                            #bids_m_list.append(bids_m)
-                            #asks_m_list.append(asks_m)
+                            bids_m_list.append(bids_m)
+                            asks_m_list.append(asks_m)
 
                             # Save bids_m and asks_m into info.
                             info = {
                                 "count": count-200,
                                 "bids_m": bids_m,
-                                "asks_m": asks_m
+                                "asks_m": asks_m,
+                                "bids_ma": moving_average(bids_m_list),
+                                "asks_ma": moving_average(asks_m_list),
+                                "rate_of_change": rate_of_change,
+                                "bids_vol_diff": vol_diff["volBids"].values.tolist(),
+                                "asks_vol_diff": vol_diff["volAsks"].values.tolist()
                             }
 
                             # Append data to csv file.

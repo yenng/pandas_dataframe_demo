@@ -42,8 +42,16 @@ asks_m_list = []
 t0 = time()
 count = 0
 
-fieldnames = ["count", "bids_m", "asks_m", "rate_of_change", "bids_vol_diff", "asks_vol_diff"]
+fieldnames = ["count", "bids_m", "asks_m", "bids_ma", "asks_ma",
+              "rate_of_change", "bids_vol_diff", "asks_vol_diff"]
 
+def moving_average(data_in, ma=100):
+    data = data_in[-ma:]
+    if len(data) < 100:
+        return 0
+    else:
+        return np.mean(data)
+    
 with open('data.csv', 'w') as csv_file:
     csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
     csv_writer.writeheader()
@@ -108,6 +116,8 @@ while True:
                         "count": count-200,
                         "bids_m": bids_m,
                         "asks_m": asks_m,
+                        "bids_ma": moving_average(bids_m_list),
+                        "asks_ma": moving_average(asks_m_list),
                         "rate_of_change": rate_of_change,
                         "bids_vol_diff": x_diff["volBids"].values.tolist(),
                         "asks_vol_diff": x_diff["volAsks"].values.tolist()
