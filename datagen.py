@@ -58,7 +58,7 @@ with open('data.csv', 'w') as csv_file:
 
 while True:
 
-    with open('data.csv', 'a') as csv_file:
+    with open('data.csv', 'a', newline='') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         # Create a dummy situation where it have 300 events happened.
         # Random sleep for few millisecond.
@@ -122,8 +122,12 @@ while True:
                         "bids_vol_diff": x_diff["volBids"].values.tolist(),
                         "asks_vol_diff": x_diff["volAsks"].values.tolist()
                     }
-
+                    
+                    info_pd = pd.DataFrame.from_dict(info)
                     csv_writer.writerow(info)
-
         count += 1
+                    
+    data = pd.read_csv('data.csv')
+    if len(data['bids_m']) >1000:
+        data[-200:].to_csv('data.csv', index=False)
 
