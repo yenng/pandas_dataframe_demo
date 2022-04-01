@@ -18,16 +18,12 @@ def main():
             y2 = np.array(data['asks_m'][-200:]).astype(float)
             y1_ma = np.array(data['bids_ma'][-200:]).astype(float)
             y2_ma = np.array(data['asks_ma'][-200:]).astype(float)
-
-            zero = [0]*200
         else:
             x = np.array(range(len(data['bids_m']))).astype(float)
             y1 = np.array(data['bids_m']).astype(float)
             y2 = np.array(data['asks_m']).astype(float)
             y1_ma = np.array(data['bids_ma']).astype(float)
             y2_ma = np.array(data['asks_ma']).astype(float)
-
-            zero = [0]*len(data['bids_m'])
 
         fig2.clf()
         # Separate the value to pos and neg for y1_ma.
@@ -60,13 +56,13 @@ def main():
 
         # Set value to subplot pos 2.
         ax_bids_ma.plot(pos_x1_ma, pos_y1_ma, color='green', linewidth=1)
-        #ax_bids_ma.plot(x, zero, color='blue', linewidth=0.5)
+        ax_bids_ma.plot(x, y1, color='blue', linewidth=0.5)
         ax_bids_ma.plot(neg_x1_ma, neg_y1_ma, color='red', linewidth=1)
         ax_bids_ma.set_title("Bids mean free path moving average (100).",fontdict={'fontsize':12}) 
         
         # Set value to subplot pos 4.
         ax_asks_ma.plot(pos_x2_ma, pos_y2_ma, color='green', linewidth=1)
-        #ax_asks_ma.plot(x, zero, color='blue', linewidth=0.5)
+        ax_asks_ma.plot(x, y2, color='blue', linewidth=0.5)
         ax_asks_ma.plot(neg_x2_ma, neg_y2_ma, color='red', linewidth=1)
         ax_asks_ma.set_title("Asks mean free path moving average (100).",fontdict={'fontsize':12})
 
