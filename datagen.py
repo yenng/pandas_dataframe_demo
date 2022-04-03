@@ -1,7 +1,7 @@
 import csv
 import random
 import time
-from ib_insync import *
+#from ib_insync import *
 #from IPython.display import display, clear_output
 import pandas as pd
 import numpy as np
@@ -60,6 +60,10 @@ while True:
 
     with open('data.csv', 'a', newline='') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        
+        # Initialize the moving average length. (Change the value here if you want different length for moving average.)
+        ma_len = 200
+        
         # Create a dummy situation where it have 300 events happened.
         # Random sleep for few millisecond.
         sleep(round(random.uniform(0.01,0.05),3))
@@ -116,8 +120,8 @@ while True:
                         "count": count-200,
                         "bids_m": bids_m,
                         "asks_m": asks_m,
-                        "bids_ma": moving_average(bids_m_list),
-                        "asks_ma": moving_average(asks_m_list),
+                        "bids_ma": moving_average(bids_m_list, ma_len),
+                        "asks_ma": moving_average(asks_m_list, ma_len),
                         "rate_of_change": rate_of_change,
                         "bids_vol_diff": x_diff["volBids"].values.tolist(),
                         "asks_vol_diff": x_diff["volAsks"].values.tolist()
@@ -128,6 +132,8 @@ while True:
         count += 1
                     
     data = pd.read_csv('data.csv')
-    if len(data['bids_m']) >1000:
-        data[-200:].to_csv('data.csv', index=False)
+    # Remove data after storing maximum data.
+    max_data = ma_len*2 if ma_len*2 > 1000 else 1000
+    if len(data['bids_m']) > max_data:
+        data[int(-(max_data/2)):].to_csv('data.csv', index=False)
 

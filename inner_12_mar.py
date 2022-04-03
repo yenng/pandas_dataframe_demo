@@ -1,4 +1,5 @@
 from ib_insync import *
+import csv
 #from IPython.display import display, clear_output
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -98,6 +99,9 @@ if __name__ == "__main__":
                 # Final result.
                 global bids_m_list
                 global asks_m_list
+                
+                # Initialize the moving average length. (Change the value here if you want different length for moving average.)
+                ma_len = 100
 
                 # Initialize the dataframe for current volume.
                 current_vol = pd.DataFrame(index=range(10),
@@ -115,7 +119,6 @@ if __name__ == "__main__":
 
                 # Get the current closing price.
                 price = ticker.domBids[0][0]
-
 
                 # Skip the first data. (first data is not valid.)
                 if count > 0:
@@ -163,8 +166,8 @@ if __name__ == "__main__":
                                 "count": count-200,
                                 "bids_m": bids_m,
                                 "asks_m": asks_m,
-                                "bids_ma": moving_average(bids_m_list),
-                                "asks_ma": moving_average(asks_m_list),
+                                "bids_ma": moving_average(bids_m_list, ma_len),
+                                "asks_ma": moving_average(asks_m_list, ma_len),
                                 "rate_of_change": rate_of_change,
                                 "bids_vol_diff": vol_diff["volBids"].values.tolist(),
                                 "asks_vol_diff": vol_diff["volAsks"].values.tolist()
@@ -181,8 +184,11 @@ if __name__ == "__main__":
                 count+=1
                     
             data = pd.read_csv('data.csv')
-            if len(data['bids_m']) >1000:
-                data[-200:].to_csv('data.csv', index=False)
+            
+            # Remove data after storing maximum data.
+            max_data = ma_len*2 if ma_len*2 > 1000 else 1000
+            if len(data['bids_m']) > max_data:
+                data[-(max_data/2):].to_csv('data.csv', index=False)
 
 
 
