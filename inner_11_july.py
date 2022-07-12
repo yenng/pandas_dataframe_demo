@@ -7,9 +7,8 @@ import numpy as np
 import time
 import sys
 
-
 def meanFreePath(v, f):
-    n = 200
+    global n
 
     mean_v = np.mean(v)
     mean_f = np.mean(f)
@@ -39,6 +38,11 @@ def moving_average(data_in, ma=100):
         return np.mean(data)
     
 if __name__ == "__main__":
+    n = int(input("Number of dataset (default 200): ") or "200")
+    
+    # Initialize the moving average length. (Change the value here if you want different length for moving average.)
+    ma_len = int(input("Moving Average (default 200):") or "200")
+
     fieldnames = ["count", "bids_m", "asks_m", "bids_ma", "asks_ma",
                   "rate_of_change", "bids_vol_diff", "asks_vol_diff"]
 
@@ -147,8 +151,8 @@ if __name__ == "__main__":
 
                         t0 = t1
 
-                        # Mask for every 200 valid data.
-                        if len(bids_sum) > 200:
+                        # Mask for every n valid data.
+                        if len(bids_sum) > n:
 
                             # Get the mean free path.
                             bids_m = meanFreePath(rate_list, bids_sum)
@@ -160,11 +164,11 @@ if __name__ == "__main__":
 
                             # Save bids_m and asks_m into info.
                             info = {
-                                "count": count-200,
+                                "count": count-n,
                                 "bids_m": bids_m,
                                 "asks_m": asks_m,
-                                "bids_ma": moving_average(bids_m_list),
-                                "asks_ma": moving_average(asks_m_list),
+                                "bids_ma": moving_average(bids_m_list, ma_len),
+                                "asks_ma": moving_average(asks_m_list, ma_len),
                                 "rate_of_change": rate_of_change,
                                 "bids_vol_diff": vol_diff["volBids"].values.tolist(),
                                 "asks_vol_diff": vol_diff["volAsks"].values.tolist()

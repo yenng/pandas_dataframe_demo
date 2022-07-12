@@ -8,9 +8,14 @@ import numpy as np
 import random
 from time import sleep, time
 import sys
-    
+
+n = int(input("Number of dataset (default 200):") or "200")
+
+# Initialize the moving average length. (Change the value here if you want different length for moving average.)
+ma_len = int(input("Moving Average (default 200):") or "200")
+
 def meanFreePath(v, f):
-    n = 3
+    global n
     
     mean_v = np.mean(v)
     mean_f = np.mean(f)
@@ -32,7 +37,6 @@ def knudsen(L):
 
     return kn
 
-mask=200
 x_list = []
 bid_sum = []
 ask_sum = []
@@ -60,9 +64,6 @@ while True:
 
     with open('data.csv', 'a', newline='') as csv_file:
         csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-        
-        # Initialize the moving average length. (Change the value here if you want different length for moving average.)
-        ma_len = 200
         
         # Create a dummy situation where it have 300 events happened.
         # Random sleep for few millisecond.
@@ -102,7 +103,7 @@ while True:
 
                 rate_list.append(rate_of_change)
                 
-                if len(ask_sum) > mask:
+                if len(ask_sum) > n:
                     
                     # Get the mean free path for bids and asks.                    
                     bids_m = round(meanFreePath(rate_list, bid_sum),3)
@@ -117,7 +118,7 @@ while True:
                     rate_list.pop(0)
 
                     info = {
-                        "count": count-200,
+                        "count": count-n,
                         "bids_m": bids_m,
                         "asks_m": asks_m,
                         "bids_ma": moving_average(bids_m_list, ma_len),
@@ -136,4 +137,3 @@ while True:
     max_data = ma_len*2 if ma_len*2 > 1000 else 1000
     if len(data['bids_m']) > max_data:
         data[int(-(max_data/2)):].to_csv('data.csv', index=False)
-
