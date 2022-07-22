@@ -79,58 +79,62 @@ while True:
             current_x.loc[j] = [bids, asks]
 
         # Main function run here.
-        #Skip the first data.
-        if count > 0:
-            x_list.append(current_x)
+        # Skip the first data.
+        if count >= 0:
+            # random a price different.
+            price_diff = random.uniform(-2,2)
+            if price_diff == 0:
+                # Do Nothing.
+                pass
+            else:
+                x_list.append(current_x)
 
-            #Get the subtraction for the third data onwards.
-            if len(x_list)==2:
-                
-                x_diff = x_list[1] - x_list[0]
-
-                x_list.pop(0)
-
-                # Get the sum of the different.
-                bid_sum.append(x_diff["volBids"].sum())
-                ask_sum.append(x_diff["volAsks"].sum())
-
-                # random a price different.
-                price_diff = random.uniform(-2,2)
-                time_taken = t1 - t0
-                t0 = t1
-
-                rate_of_change = price_diff/time_taken
-
-                rate_list.append(rate_of_change)
-                
-                if len(ask_sum) > n:
+                #Get the subtraction for the third data onwards.
+                if len(x_list)==2:
                     
-                    # Get the mean free path for bids and asks.                    
-                    bids_m = round(meanFreePath(rate_list, bid_sum),3)
-                    asks_m = round(meanFreePath(rate_list, ask_sum),3)
+                    x_diff = x_list[1] - x_list[0]
 
-                    bids_m_list.append(bids_m)
-                    asks_m_list.append(asks_m)
+                    x_list.pop(0)
 
-                    # Remove the first element.
-                    ask_sum.pop(0)
-                    bid_sum.pop(0)
-                    rate_list.pop(0)
+                    # Get the sum of the different.
+                    bid_sum.append(x_diff["volBids"].sum())
+                    ask_sum.append(x_diff["volAsks"].sum())
 
-                    info = {
-                        "count": count-n,
-                        "bids_m": bids_m,
-                        "asks_m": asks_m,
-                        "bids_ma": moving_average(bids_m_list, ma_len),
-                        "asks_ma": moving_average(asks_m_list, ma_len),
-                        "rate_of_change": rate_of_change,
-                        "bids_vol_diff": x_diff["volBids"].values.tolist(),
-                        "asks_vol_diff": x_diff["volAsks"].values.tolist()
-                    }
+                    time_taken = t1 - t0
+                    t0 = t1
+
+                    rate_of_change = price_diff/time_taken
+
+                    rate_list.append(rate_of_change)
                     
-                    info_pd = pd.DataFrame.from_dict(info)
-                    csv_writer.writerow(info)
-        count += 1
+                    if len(ask_sum) > n:
+                        
+                        # Get the mean free path for bids and asks.                    
+                        bids_m = round(meanFreePath(rate_list, bid_sum),3)
+                        asks_m = round(meanFreePath(rate_list, ask_sum),3)
+
+                        bids_m_list.append(bids_m)
+                        asks_m_list.append(asks_m)
+
+                        # Remove the first element.
+                        ask_sum.pop(0)
+                        bid_sum.pop(0)
+                        rate_list.pop(0)
+
+                        info = {
+                            "count": count-n,
+                            "bids_m": bids_m,
+                            "asks_m": asks_m,
+                            "bids_ma": moving_average(bids_m_list, ma_len),
+                            "asks_ma": moving_average(asks_m_list, ma_len),
+                            "rate_of_change": rate_of_change,
+                            "bids_vol_diff": x_diff["volBids"].values.tolist(),
+                            "asks_vol_diff": x_diff["volAsks"].values.tolist()
+                        }
+                        
+                        info_pd = pd.DataFrame.from_dict(info)
+                        csv_writer.writerow(info)
+                count += 1
                     
     data = pd.read_csv('data.csv')
     # Remove data after storing maximum data.

@@ -102,6 +102,9 @@ if __name__ == "__main__":
                 # Final result.
                 global bids_m_list
                 global asks_m_list
+                
+                # Flag to determine is this data valid.
+                valid_data = True
 
                 # Initialize the dataframe for current volume.
                 current_vol = pd.DataFrame(index=range(10),
@@ -131,62 +134,67 @@ if __name__ == "__main__":
                         
                         # Check the price diff.
                         price_diff = price_list[1] - price_list[0]
+                        
                         if price_diff == 0:
-                            # No price diff, remove the last data that append.
+                            # price not changing is invalid data.
+                            valid_data = False
+
+                        # Get the time taken and rate of change.
+                        t1 = time.time()
+                        try:
+                            rate_of_change = price_diff/(t1-t0) # unit is usd/s
+                        except ZeroDivisionError:
+                            # Time changes too small, invalid data.
+                            valid_data = False
+                        
+                        if not valid_data:
                             price_list.pop(-1)
-                            vol_list.pop(-1)
-                        else:
-                            price_list.pop(0)
-                            
-                            # Get the different of the data after 1 ticker.
-                            vol_diff = vol_list[1] - vol_list[0]
-                            vol_list.pop(0)
+                            return
+                        
+                        price_list.pop(0)
+                        
+                        # Get the different of the data after 1 ticker.
+                        vol_diff = vol_list[1] - vol_list[0]
+                        vol_list.pop(0)
 
-                            # Store the sum of bid and ask to a list.
-                            bids_sum.append(vol_diff["volBids"].sum())
-                            asks_sum.append(vol_diff["volAsks"].sum())
+                        # Store the sum of bid and ask to a list.
+                        bids_sum.append(vol_diff["volBids"].sum())
+                        asks_sum.append(vol_diff["volAsks"].sum())
 
-                            # Get the time taken and rate of change.
-                            t1 = time.time()
-                            try:
-                                rate_of_change = price_diff/(t1-t0) # unit is usd/s
-                            except ZeroDivisionError:
-                                rate_of_change = 100000
+                        rate_list.append(rate_of_change)
 
-                            rate_list.append(rate_of_change)
+                        t0 = t1
 
-                            t0 = t1
+                        # Mask for every n valid data.
+                        if len(bids_sum) > n:
 
-                            # Mask for every n valid data.
-                            if len(bids_sum) > n:
+                            # Get the mean free path.
+                            bids_m = meanFreePath(rate_list, bids_sum)
+                            asks_m = meanFreePath(rate_list, asks_sum)
 
-                                # Get the mean free path.
-                                bids_m = meanFreePath(rate_list, bids_sum)
-                                asks_m = meanFreePath(rate_list, asks_sum)
+                            # Append the result to a list.
+                            bids_m_list.append(bids_m)
+                            asks_m_list.append(asks_m)
 
-                                # Append the result to a list.
-                                bids_m_list.append(bids_m)
-                                asks_m_list.append(asks_m)
+                            # Save bids_m and asks_m into info.
+                            info = {
+                                "count": count-n,
+                                "bids_m": bids_m,
+                                "asks_m": asks_m,
+                                "bids_ma": moving_average(bids_m_list, ma_len),
+                                "asks_ma": moving_average(asks_m_list, ma_len),
+                                "rate_of_change": rate_list,
+                                "bids_vol_diff": vol_diff["volBids"].values.tolist(),
+                                "asks_vol_diff": vol_diff["volAsks"].values.tolist()
+                            }
 
-                                # Save bids_m and asks_m into info.
-                                info = {
-                                    "count": count-n,
-                                    "bids_m": bids_m,
-                                    "asks_m": asks_m,
-                                    "bids_ma": moving_average(bids_m_list, ma_len),
-                                    "asks_ma": moving_average(asks_m_list, ma_len),
-                                    "rate_of_change": rate_of_change,
-                                    "bids_vol_diff": vol_diff["volBids"].values.tolist(),
-                                    "asks_vol_diff": vol_diff["volAsks"].values.tolist()
-                                }
+                            # Append data to csv file.
+                            csv_writer.writerow(info)
 
-                                # Append data to csv file.
-                                csv_writer.writerow(info)
-
-                                # Remove the first element from list.
-                                bids_sum.pop(0)
-                                asks_sum.pop(0)
-                                rate_list.pop(0)
+                            # Remove the first element from list.
+                            bids_sum.pop(0)
+                            asks_sum.pop(0)
+                            rate_list.pop(0)
 
                 count+=1
 
