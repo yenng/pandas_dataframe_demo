@@ -16,18 +16,19 @@ ma_len = int(input("Moving Average (default 200):") or "200")
 
 def meanFreePath(v, f):
     global n
-    
+    import pdb
+    pdb.set_trace()
     mean_v = np.mean(v)
     mean_f = np.mean(f)
 
     numer = 0
     denom = 0
-
+    
     for i in range(n):
         numer += (f[i] - mean_f)*(v[i] - mean_v)
         denom += (f[i] - mean_f)**2
-
     m = numer/denom
+    pdb.set_trace()
 
     return m
 
@@ -46,8 +47,9 @@ asks_m_list = []
 t0 = time()
 count = 0
 
-fieldnames = ["count", "bids_m", "asks_m", "bids_ma", "asks_ma",
-              "rate_of_change", "bids_vol_diff", "asks_vol_diff"]
+fieldnames = ["count", "bids_m", "asks_m", "t_diff", "price_diff",
+                "bids_sum", "asks_sum", "bids_ma", "asks_ma",
+                "rate_of_change", "bids_vol_diff", "asks_vol_diff"]
 
 def moving_average(data_in, ma=100):
     data = data_in[-ma:]
@@ -116,24 +118,28 @@ while True:
                         bids_m_list.append(bids_m)
                         asks_m_list.append(asks_m)
 
-                        # Remove the first element.
-                        ask_sum.pop(0)
-                        bid_sum.pop(0)
-                        rate_list.pop(0)
-
                         info = {
                             "count": count-n,
                             "bids_m": bids_m,
                             "asks_m": asks_m,
+                            "t_diff": time_taken,
+                            "price_diff": price_diff,
+                            "bids_sum": bid_sum,
+                            "asks_sum": ask_sum,
                             "bids_ma": moving_average(bids_m_list, ma_len),
                             "asks_ma": moving_average(asks_m_list, ma_len),
-                            "rate_of_change": rate_of_change,
+                            "rate_of_change": rate_list,
                             "bids_vol_diff": x_diff["volBids"].values.tolist(),
                             "asks_vol_diff": x_diff["volAsks"].values.tolist()
                         }
-                        
-                        info_pd = pd.DataFrame.from_dict(info)
+                        #info_pd = pd.DataFrame.from_dict(info)
                         csv_writer.writerow(info)
+
+                        # Remove the first element.
+                        ask_sum.pop(0)
+                        bid_sum.pop(0)
+                        rate_list.pop(0)
+                        
                 count += 1
                     
     data = pd.read_csv('data.csv')

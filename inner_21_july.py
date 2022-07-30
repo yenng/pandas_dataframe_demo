@@ -1,6 +1,5 @@
 from ib_insync import *
 #from IPython.display import display, clear_output
-import matplotlib.pyplot as plt
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
