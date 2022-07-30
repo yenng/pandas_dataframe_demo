@@ -36,14 +36,15 @@ def moving_average(data_in, ma=100):
         return 0
     else:
         return np.mean(data)
-    
+
 if __name__ == "__main__":
     n = int(input("Number of dataset (default 200): ") or "200")
-    
+
     # Initialize the moving average length. (Change the value here if you want different length for moving average.)
     ma_len = int(input("Moving Average (default 200):") or "200")
 
-    fieldnames = ["count", "bids_m", "asks_m", "bids_ma", "asks_ma",
+    fieldnames = ["count", "bids_m", "asks_m", "t_diff", "price_diff",
+                  "bids_sum", "asks_sum", "bids_ma", "asks_ma",
                   "rate_of_change", "bids_vol_diff", "asks_vol_diff"]
 
     # Write header row.
@@ -83,11 +84,11 @@ if __name__ == "__main__":
 
         def onTickerUpdate(ticker):
             """ Main event handler function when a ticker update."""
-                   
+
             with open('data.csv', 'a') as csv_file:
                 # Create dictionary writer to store data.
                 csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-                
+
                 # Global value pass in here.
                 global vol_list
                 global price_list
@@ -102,7 +103,7 @@ if __name__ == "__main__":
                 # Final result.
                 global bids_m_list
                 global asks_m_list
-                
+
                 # Flag to determine is this data valid.
                 valid_data = True
 
@@ -131,10 +132,10 @@ if __name__ == "__main__":
 
                     # Start storing data after 2 valid data.
                     if count >= 2:
-                        
+
                         # Check the price diff.
                         price_diff = price_list[1] - price_list[0]
-                        
+
                         if price_diff == 0:
                             # price not changing is invalid data.
                             valid_data = False
@@ -142,17 +143,18 @@ if __name__ == "__main__":
                         # Get the time taken and rate of change.
                         t1 = time.time()
                         try:
-                            rate_of_change = price_diff/(t1-t0) # unit is usd/s
+                            t_diff = t1-t0
+                            rate_of_change = price_diff/(t_diff) # unit is usd/s
                         except ZeroDivisionError:
                             # Time changes too small, invalid data.
                             valid_data = False
-                        
+
                         if not valid_data:
                             price_list.pop(-1)
                             return
-                        
+
                         price_list.pop(0)
-                        
+
                         # Get the different of the data after 1 ticker.
                         vol_diff = vol_list[1] - vol_list[0]
                         vol_list.pop(0)
@@ -181,6 +183,10 @@ if __name__ == "__main__":
                                 "count": count-n,
                                 "bids_m": bids_m,
                                 "asks_m": asks_m,
+                                "t_diff": t_diff,
+                                "price_diff": price_diff,
+                                "bids_sum": bids_sum,
+                                "asks_sum": asks_sum,
                                 "bids_ma": moving_average(bids_m_list, ma_len),
                                 "asks_ma": moving_average(asks_m_list, ma_len),
                                 "rate_of_change": rate_list,
